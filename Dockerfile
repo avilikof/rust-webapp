@@ -17,4 +17,4 @@ RUN cargo build
 
 FROM rust:1.73-slim AS template-rust
 COPY --from=builder /app/target/debug/template-rust /usr/local/bin
-ENTRYPOINT ["/usr/local/bin/template-rust"]
+ENTRYPOINT ["/usr/local/bin/rust-webapp"]
