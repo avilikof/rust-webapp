@@ -13,8 +13,8 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --recipe-path recipe.json
 
 COPY . .
-RUN cargo build
+RUN cargo build --release
 
 FROM rust:1.73-slim AS template-rust
-COPY --from=builder /app/target/debug/template-rust /usr/local/bin
+COPY --from=builder /app/target/debug/rust-webapp /usr/local/bin
 ENTRYPOINT ["/usr/local/bin/rust-webapp"]
