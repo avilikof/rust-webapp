@@ -1,9 +1,13 @@
 use axum::{routing::get, Router};
+use log::{debug, info, LevelFilter};
+
 use std::env;
 
 
 #[tokio::main]
 async fn main() {
+    init_logging();
+
     // build our application with a single route
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
@@ -17,8 +21,15 @@ async fn main() {
 }
 
 async fn text_from_var() -> String {
+    debug!("/text route executed");
     match env::var("PORT") {
         Err(e) => e.to_string(),
         Ok(var) => var
     }
+}
+
+fn init_logging() {
+    env_logger::builder()
+        .filter_level(LevelFilter::Debug) // Adjust log level as needed
+        .init();
 }
