@@ -29,7 +29,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
         .route("/text", get(text_from_var))
-        .route("kafka", get(read_kafka_message));
+        .route("/kafka", get(read_kafka_message));
 
     // run it with hyper on localhost:3000
     axum::Server::bind(&"0.0.0.0:8080".parse().unwrap())
