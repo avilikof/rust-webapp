@@ -1,6 +1,7 @@
 mod drivers;
 mod libs;
 mod adapters;
+mod usecases;
 
 
 use axum::{routing::get, Json, Router};
