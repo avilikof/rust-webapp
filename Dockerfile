@@ -3,9 +3,9 @@
 FROM lukemathwalker/cargo-chef:latest-rust-1.73.0 AS chef
 WORKDIR /app
 
-RUN yum update -y
-RUN yum install -y libsasl2-dev
-RUN yum install -y openssl
+RUN apt-get update -y
+RUN apt-get install -y libsasl2-dev
+RUN apt-get install -y openssl
 
 FROM chef AS planner
 COPY . .
