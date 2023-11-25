@@ -24,8 +24,8 @@ impl<S: KafkaSettings> StreamingKafka<S> {
             .set("sasl.username", s.username())
             .set("sasl.password", s.password())
             .set("group.id", s.group_id())
-            .set("auto.offset.reset", "latest");
-            // .set("ssl.ca.location", "/etc/ssl/certs");
+            .set("auto.offset.reset", "latest")
+            .set("ssl.ca.location", "/usr/lib/aarch64-linux-gnu");
         Self {
             consumer_config,
             streaming_settings: s,
