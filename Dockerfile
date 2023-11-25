@@ -12,6 +12,10 @@ COPY --from=planner /app/recipe.json recipe.json
 # Build dependencies - this is the caching Docker layer!
 RUN cargo chef cook --recipe-path recipe.json
 
+RUN apt-get update -y
+RUN apt-get install -y libsasl2-dev
+RUN apt-get install -y openssl
+
 COPY . .
 RUN cargo build
 
