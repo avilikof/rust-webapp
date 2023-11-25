@@ -31,5 +31,10 @@ COPY . .
 RUN cargo build
 
 FROM rust:1.73-slim AS template-rust
+
+RUN apt-get update -y
+RUN apt-get install -y libsasl2-dev
+RUN apt-get install -y openssl
+
 COPY --from=builder /app/target/debug/rust-webapp /usr/local/bin
 ENTRYPOINT ["/usr/local/bin/rust-webapp"]
