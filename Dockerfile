@@ -3,6 +3,10 @@
 FROM lukemathwalker/cargo-chef:latest-rust-1.73.0 AS chef
 WORKDIR /app
 
+RUN yum update -y
+RUN yum install -y libsasl2-dev
+RUN yum install -y openssl
+
 FROM chef AS planner
 COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
@@ -12,9 +16,7 @@ COPY --from=planner /app/recipe.json recipe.json
 # Build dependencies - this is the caching Docker layer!
 RUN cargo chef cook --recipe-path recipe.json
 
-RUN yum update -y
-RUN yum install -y libsasl2-dev
-RUN yum install -y openssl
+
 
 COPY . .
 RUN cargo build
