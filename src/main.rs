@@ -29,7 +29,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
         .route("/text", get(text_from_var))
-        .route("/kafka", get(read_kafka_message));
+        .route("/kafka", get(kafka));
 
     // run it with hyper on localhost:3000
     axum::Server::bind(&"0.0.0.0:8080".parse().unwrap())
@@ -53,12 +53,14 @@ fn init_logging() {
         .init();
 }
 
-fn execution_time<F>(func: F) -> (Duration, String)
-where
-    F: FnOnce() -> String,
+async fn execution_time<F, Fut>(func: F) -> (Duration, String)
+    where
+        F: FnOnce() -> Fut,
+        Fut: std::future::Future<Output = String>,
 {
     let start_time = Instant::now();
-    let func_resp: String = func();
+    let fut = func();
+    let func_resp = fut.await;
     let end_time = Instant::now();
     (end_time - start_time, func_resp)
 }
@@ -88,4 +90,9 @@ async fn read_kafka_message() -> String {
         Ok(res) => res,
     }
 
+}
+
+async fn kafka() -> Json<ExecTime> {
+    let resp = execution_time(read_kafka_message).await;
+    Json(execution_report(resp.0, &resp.1))
 }
