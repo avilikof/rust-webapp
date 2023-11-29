@@ -1,8 +1,8 @@
-use std::env;
 use log::error;
+use std::env;
 
 #[derive(Debug, Clone)]
-pub struct  StreamingSettings {
+pub struct StreamingSettings {
     pub bootstrap: String,
     pub username: String,
     pub password: String,
@@ -16,8 +16,8 @@ fn get_env(env_name: &str) -> String {
         Err(_) => {
             error!("Cannot get system variable: {}", &env_name_caps);
             panic!("failed to get settings from variables");
-        },
-        Ok(sys_var) => sys_var
+        }
+        Ok(sys_var) => sys_var,
     }
 }
 
@@ -28,7 +28,7 @@ impl StreamingSettings {
         let password = get_env("UPSTASH_KAFKA_REST_PASSWORD");
         let default_topic = get_env("UPSTASH_KAFKA_WRITE_TOPIC");
         let group_id = get_env("UPSTASH_KAFKA_GROUP_ID");
-        StreamingSettings{
+        StreamingSettings {
             bootstrap,
             username,
             password,
@@ -36,5 +36,4 @@ impl StreamingSettings {
             group_id,
         }
     }
-
 }

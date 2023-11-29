@@ -1,7 +1,7 @@
 use crate::usecases::kafka::error::StreamHandlerError;
 
 pub trait StreamConsumerInterface {
-    fn pull(&self) -> String;
+    fn pull(&mut self) -> String;
 }
 
 pub trait StreamProducerInterface {

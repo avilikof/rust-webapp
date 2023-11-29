@@ -1,20 +1,21 @@
+mod adapters;
 mod drivers;
 mod libs;
-mod adapters;
 mod usecases;
-
 
 use axum::{routing::get, Json, Router};
 use log::{debug, LevelFilter};
 
+use crate::drivers::kafka::kafka::StreamingKafka;
+use crate::libs::repository::Repo;
+use crate::libs::settings::StreamingSettings;
+use rdkafka::Message;
 use serde::Serialize;
+use std::sync::Arc;
 use std::{
     env,
     time::{Duration, Instant},
 };
-use rdkafka::Message;
-use crate::drivers::kafka::kafka::StreamingKafka;
-use crate::libs::settings::StreamingSettings;
 
 #[derive(Serialize)]
 struct ExecTime {
@@ -25,12 +26,13 @@ struct ExecTime {
 #[tokio::main]
 async fn main() {
     init_logging();
+    let mut repo = Repo::new();
 
     // build our application with a single route
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
         .route("/text", get(text_from_var))
-        .route("/kafka", get(kafka));
+        .route("/kafka", get(|| kafka(&mut repo)));
 
     // run it with hyper on localhost:3000
     axum::Server::bind(&"0.0.0.0:8080".parse().unwrap())
@@ -55,9 +57,9 @@ fn init_logging() {
 }
 
 async fn execution_time<F, Fut>(func: F) -> (Duration, String)
-    where
-        F: FnOnce() -> Fut,
-        Fut: std::future::Future<Output = String>,
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = String>,
 {
     let start_time = Instant::now();
     let fut = func();
@@ -81,19 +83,21 @@ fn execution_report(duration: Duration, result: &str) -> ExecTime {
     }
 }
 
-async fn read_kafka_message() -> String {
+async fn read_kafka_message(repo: &mut Repo) -> String {
     let kafka_settings = StreamingSettings::new();
     let mut kafka_client = StreamingKafka::new(kafka_settings);
     let consumer = &kafka_client.subscribe();
     let a = consumer.recv().await.unwrap().payload().unwrap().to_vec();
     match String::from_utf8(a) {
         Err(_) => "Failed to convert from byte to string".to_string(),
-        Ok(res) => res,
+        Ok(res) => {
+            repo.push("a", &res);
+            res
+        }
     }
-
 }
 
-async fn kafka() -> Json<ExecTime> {
-    let resp = execution_time(read_kafka_message).await;
+async fn kafka(repo: &mut Repo) -> Json<ExecTime> {
+    let resp = execution_time(|| read_kafka_message(repo)).await;
     Json(execution_report(resp.0, &resp.1))
 }

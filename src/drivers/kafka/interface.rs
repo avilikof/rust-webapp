@@ -1,4 +1,4 @@
-pub trait KafkaSettings {
+pub trait KafkaSettingsInterface {
     fn bootstrap(&self) -> String;
     fn username(&self) -> String;
     fn password(&self) -> String;

@@ -1,2 +1,2 @@
-pub mod kafka;
 pub mod interface;
+pub mod kafka;
