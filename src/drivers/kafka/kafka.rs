@@ -1,3 +1,5 @@
+use crate::drivers::kafka::interface::KafkaSettings;
+use log::debug;
 use rdkafka::config::ClientConfig;
 use rdkafka::consumer::stream_consumer::StreamConsumer;
 use rdkafka::consumer::Consumer;
@@ -5,11 +7,9 @@ use rdkafka::error::KafkaError;
 use rdkafka::message::OwnedMessage;
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use std::time::Duration;
-use log::debug;
-use crate::drivers::kafka::interface::KafkaSettings;
 
 #[derive(Debug, Clone)]
-pub struct StreamingKafka <S: KafkaSettings> {
+pub struct StreamingKafka<S: KafkaSettings> {
     consumer_config: ClientConfig,
     streaming_settings: S,
 }

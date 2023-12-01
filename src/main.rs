@@ -1,19 +1,19 @@
+mod adapters;
 mod drivers;
 mod libs;
-mod adapters;
-
 
 use axum::{routing::get, Json, Router};
-use log::{debug, LevelFilter};
+use log::{debug, info, LevelFilter};
 
+use crate::drivers::kafka::kafka::StreamingKafka;
+use crate::drivers::redis::redis::call_redis;
+use crate::libs::settings::StreamingSettings;
+use rdkafka::Message;
 use serde::Serialize;
 use std::{
     env,
     time::{Duration, Instant},
 };
-use rdkafka::Message;
-use crate::drivers::kafka::kafka::StreamingKafka;
-use crate::libs::settings::StreamingSettings;
 
 #[derive(Serialize)]
 struct ExecTime {
@@ -29,6 +29,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
         .route("/text", get(text_from_var))
+        .route("/redis", get(play_redis))
         .route("/kafka", get(kafka));
 
     // run it with hyper on localhost:3000
@@ -54,9 +55,9 @@ fn init_logging() {
 }
 
 async fn execution_time<F, Fut>(func: F) -> (Duration, String)
-    where
-        F: FnOnce() -> Fut,
-        Fut: std::future::Future<Output = String>,
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = String>,
 {
     let start_time = Instant::now();
     let fut = func();
@@ -89,10 +90,18 @@ async fn read_kafka_message() -> String {
         Err(_) => "Failed to convert from byte to string".to_string(),
         Ok(res) => res,
     }
-
 }
 
 async fn kafka() -> Json<ExecTime> {
     let resp = execution_time(read_kafka_message).await;
     Json(execution_report(resp.0, &resp.1))
+}
+
+async fn play_redis() {
+    let s = StreamingSettings::new();
+    let start_time = Instant::now();
+    let kafka_msg = read_kafka_message().await;
+    call_redis(s, Some("new_key"), Some(kafka_msg.as_str())).await;
+    let end_time = Instant::now();
+    debug!("{:?}", end_time - start_time);
 }
